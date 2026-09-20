@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clarity Music — Accessible Music Processing</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <div class="header-inner">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">♪</span>
+          <div>
+            <h1>Clarity Music</h1>
+            <p class="tagline">Research-informed processing for clearer, more comfortable listening</p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <nav class="wizard-nav" id="wizard-nav" aria-label="Processing steps">
+      <div class="wizard-step active" data-step="eq">
+        <span class="wizard-step-num">1</span>
+        <span class="wizard-step-label">Upload &amp; frequency</span>
+      </div>
+      <div class="wizard-step" data-step="reverb">
+        <span class="wizard-step-num">2</span>
+        <span class="wizard-step-label">Reverb</span>
+      </div>
+      <div class="wizard-step" data-step="ai">
+        <span class="wizard-step-num">3</span>
+        <span class="wizard-step-label">AI refine</span>
+      </div>
+    </nav>
+
+    <main class="main">
+      <!-- Step 1: Upload + frequency profile -->
+      <section class="wizard-panel card active" id="step-eq" aria-labelledby="eq-heading">
+        <h2 id="eq-heading">Upload your music &amp; choose a frequency profile</h2>
+        <p class="step-intro">
+          Upload a track and pick how Clarity Music should adjust the frequencies.
+          This does not simply make the entire song louder.
+        </p>
+
+        <div
+          class="dropzone"
+          id="dropzone"
+          role="button"
+          tabindex="0"
+          aria-label="Upload audio file. Supported formats: WAV, FLAC, OGG, MP3."
+        >
+          <input type="file" id="file-input" accept=".wav,.flac,.ogg,.aiff,.aif,.mp3,.m4a,audio/*" hidden>
+          <div class="dropzone-content">
+            <div class="dropzone-icon" aria-hidden="true">↑</div>
+            <p class="dropzone-title">Drop an audio file here or click to browse</p>
+            <p class="dropzone-hint">WAV, FLAC, OGG, MP3 · Max 50 MB</p>
+          </div>
+          <p class="selected-file" id="selected-file" hidden></p>
+        </div>
+
+        <h3 class="subsection-title">Processing profile</h3>
+        <div class="profiles" id="profiles" role="radiogroup" aria-label="Processing profile"></div>
+
+        <div class="actions">
+          <button type="button" class="btn btn-primary" id="process-btn" disabled>
+            Process music
+          </button>
+          <p class="status" id="status" role="status" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <!-- Step 1 results: frequency comparison -->
+      <section class="wizard-panel card" id="step-eq-result" hidden aria-labelledby="eq-result-heading">
+        <h2 id="eq-result-heading">Your frequency-adjusted version</h2>
+        <p class="step-intro">
+          Listen and compare the original with your processed version. When you're ready,
+          continue to optionally add reverb.
+        </p>
+
+        <div class="analysis" id="analysis" aria-label="Audio analysis summary"></div>
+
+        <div class="player-controls">
+          <div class="toggle-group" role="group" aria-label="Playback version">
+            <button type="button" class="toggle-btn" id="play-original" aria-pressed="false">
+              Original
+            </button>
+            <button type="button" class="toggle-btn active" id="play-processed" aria-pressed="true">
+              Processed
+            </button>
+          </div>
+          <button type="button" class="btn btn-secondary" id="play-pause-btn" aria-label="Play or pause">
+            ▶ Play
+          </button>
+        </div>
+
+        <div class="waveform-wrap">
+          <p class="waveform-caption" id="waveform-caption">Showing: Processed</p>
+          <canvas id="waveform" aria-hidden="true"></canvas>
+          <input
+            type="range"
+            id="seek-bar"
+            class="seek-bar"
+            min="0"
+            max="100"
+            value="0"
+            aria-label="Seek through track"
+          >
+        </div>
+
+        <div class="time-display">
+          <span id="current-time">0:00</span>
+          <span id="total-time">0:00</span>
+        </div>
+
+        <p class="profile-applied" id="profile-applied"></p>
+
+        <div class="wizard-actions">
+          <button type="button" class="btn btn-secondary" id="back-to-eq-btn">← Back</button>
+          <button type="button" class="btn btn-primary" id="continue-to-reverb-btn">
+            Continue to reverb →
+          </button>
+        </div>
+      </section>
+
+      <!-- Step 2: Reverb choice -->
+      <section class="wizard-panel card" id="step-reverb" hidden aria-labelledby="reverb-heading">
+        <h2 id="reverb-heading">Add reverb for a fuller sound?</h2>
+        <p class="step-intro">
+          Reverb can add depth and space to your processed track. Choose yes to apply a
+          subtle room reverb, or skip to move on.
+        </p>
+
+        <div class="reverb-choice" role="group" aria-label="Reverb options">
+          <button type="button" class="btn btn-primary reverb-option" id="reverb-yes-btn">
+            Yes, add reverb
+          </button>
+          <button type="button" class="btn btn-secondary reverb-option" id="reverb-no-btn">
+            No, keep as is
+          </button>
+        </div>
+
+        <p class="reverb-status" id="reverb-status" role="status" aria-live="polite"></p>
+
+        <div class="analysis" id="reverb-analysis" aria-label="Reverb step analysis summary"></div>
+
+        <div class="player-controls">
+          <button type="button" class="btn btn-secondary" id="reverb-play-pause-btn" aria-label="Play or pause">
+            ▶ Play
+          </button>
+          <button type="button" class="btn btn-secondary" id="download-processed-btn" disabled>
+            Download current version
+          </button>
+        </div>
+
+        <div class="waveform-wrap">
+          <p class="waveform-caption" id="reverb-waveform-caption">Showing: Current version</p>
+          <canvas id="reverb-waveform" aria-hidden="true"></canvas>
+          <input
+            type="range"
+            id="reverb-seek-bar"
+            class="seek-bar"
+            min="0"
+            max="100"
+            value="0"
+            aria-label="Seek through track"
+          >
+        </div>
+
+        <div class="time-display">
+          <span id="reverb-current-time">0:00</span>
+          <span id="reverb-total-time">0:00</span>
+        </div>
+
+        <p class="profile-applied" id="reverb-applied"></p>
+
+        <div class="wizard-actions">
+          <button type="button" class="btn btn-secondary" id="back-to-eq-result-btn">← Back</button>
+          <button type="button" class="btn btn-primary" id="continue-to-ai-btn" disabled>
+            Continue to AI refine →
+          </button>
+        </div>
+      </section>
+
+      <!-- Step 3: AI refinement -->
+      <section class="wizard-panel card" id="step-ai" hidden aria-labelledby="ai-heading">
+        <h2 id="ai-heading">Refine with AI</h2>
+        <p class="step-intro chat-intro">
+          Not quite right? Describe changes in everyday language — each message creates a
+          new version below. For example: “make the bass clearer,” “vocals stand out more,”
+          or “make it a little higher.”
+        </p>
+
+        <div class="ai-versions-wrap">
+          <h3 class="ai-versions-title">AI-refined versions</h3>
+          <div class="ai-versions" id="ai-versions" aria-live="polite"></div>
+        </div>
+
+        <div class="ai-player card-inner" id="ai-player" hidden>
+          <div class="analysis" id="ai-analysis" aria-label="AI version analysis summary"></div>
+
+          <div class="player-controls">
+            <button type="button" class="btn btn-secondary" id="ai-play-pause-btn" aria-label="Play or pause AI version">
+              ▶ Play
+            </button>
+            <button type="button" class="btn btn-secondary" id="ai-download-btn">
+              Download this version
+            </button>
+          </div>
+
+          <div class="waveform-wrap">
+            <canvas id="ai-waveform" aria-hidden="true"></canvas>
+            <input
+              type="range"
+              id="ai-seek-bar"
+              class="seek-bar"
+              min="0"
+              max="100"
+              value="0"
+              aria-label="Seek through AI version"
+            >
+          </div>
+
+          <div class="time-display">
+            <span id="ai-current-time">0:00</span>
+            <span id="ai-total-time">0:00</span>
+          </div>
+
+          <p class="profile-applied" id="ai-version-applied"></p>
+        </div>
+
+        <div class="chat-log" id="chat-log" aria-live="polite" aria-label="AI chat messages"></div>
+        <form class="chat-form" id="chat-form">
+          <label class="sr-only" for="chat-input">Describe how you want the music adjusted</label>
+          <textarea
+            id="chat-input"
+            rows="2"
+            placeholder="e.g. make the bass clearer, less harsh, raise the pitch slightly..."
+          ></textarea>
+          <button type="submit" class="btn btn-primary" id="chat-send-btn">Send</button>
+        </form>
+
+        <div class="wizard-actions">
+          <button type="button" class="btn btn-secondary" id="back-to-reverb-btn">← Back to reverb</button>
+        </div>
+
+        <div class="disclaimer">
+          <strong>Note:</strong> This tool is for listening exploration only. It does not
+          diagnose hearing loss, replace hearing aids, or guarantee results for every listener.
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>Built for research into music accessibility for hard-of-hearing listeners.</p>
+    </footer>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
